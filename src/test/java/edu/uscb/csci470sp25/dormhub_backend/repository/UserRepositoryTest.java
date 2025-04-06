@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Optional; // Optional is used to avoid NullPointerExceptions
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +23,11 @@ public class UserRepositoryTest {
 
     @Test
     public void testFindById() {
-        // Arrange
+        // Arrange: create a valid user with all required fields
         User user = new User();
+        user.setUsername("johndoe"); 
         user.setName("John Doe");
+        user.setEmail("johndoe@example.com");
         user = userRepository.save(user);
 
         // Act
@@ -38,9 +40,11 @@ public class UserRepositoryTest {
 
     @Test
     public void testSave() {
-        // Arrange
+        // Arrange: create a valid user with all required fields
         User user = new User();
+        user.setUsername("janedoe");
         user.setName("Jane Doe");
+        user.setEmail("janedoe@example.com");
 
         // Act
         User savedUser = userRepository.save(user);
@@ -52,9 +56,11 @@ public class UserRepositoryTest {
 
     @Test
     public void testDeleteById() {
-        // Arrange
+        // Arrange: create a valid user with all required fields
         User user = new User();
+        user.setUsername("johnsmith");
         user.setName("John Smith");
+        user.setEmail("johnsmith@example.com");
         user = userRepository.save(user);
         Long userId = user.getId();
 

@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MultiuserverseBackendApplication {
+public class DormhubBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MultiuserverseBackendApplication.class, args);
+		SpringApplication.run(DormhubBackendApplication.class, args);
 	}
 
 }
