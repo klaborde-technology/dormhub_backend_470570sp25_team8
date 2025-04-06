@@ -44,12 +44,23 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // Publicly accessible from registration and login
                 .requestMatchers("/auth/register", "/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users").permitAll()
-                .requestMatchers(HttpMethod.GET, "/user/{id}").permitAll()
+                // User endpoints: view, create, update, delete are only accessible by ADMIN
+                .requestMatchers(HttpMethod.GET, "/users").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/user/{id}").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/user").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/user/{id}").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
+                .requestMatchers(HttpMethod.PUT, "/user/{id}").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/user/{id}").hasAuthority("ADMIN")
+                // Task endpoints: all actions require ADMIN
+                .requestMatchers("/task/**").hasAuthority("ADMIN")
+                // UserTask endpoints:
+                // GET and PUT are accessible by ADMIN and PRIVILEGED_USER
+                .requestMatchers(HttpMethod.GET, "/usertask/**").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
+                .requestMatchers(HttpMethod.PUT, "/usertask/**").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
+                // POST and DELETE require ADMIN only
+                .requestMatchers(HttpMethod.POST, "/usertask/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/usertask/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception
@@ -66,12 +77,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // ✅ Allowed frontend origins
+        // Allowed frontend origins
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
-            "https://multiuserverse-budhrani.netlify.app" // <-- IMPORTANT! Update this URL when you deploy frontend to Netlify
+            "https://multiuserverse-budhrani.netlify.app" // Update URL as needed
         ));
-
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         config.setAllowCredentials(true);
