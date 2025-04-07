@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.uscb.csci470sp25.dormhub_backend.exception.UserTaskNotFoundException;
@@ -28,10 +29,13 @@ public class UserTaskController {
         return userTaskRepository.save(newUserTask);
     }
 
-    // Retrieve all user-task assignments, sorted by id
     @GetMapping("/usertasks")
-    public List<UserTask> getAllUserTasks() {
-        return userTaskRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public List<UserTask> getAllUserTasks(@RequestParam(required = false) Boolean status) {
+        if (status != null) {
+            return userTaskRepository.findByStatus(status, Sort.by(Sort.Direction.ASC, "id"));
+        } else {
+            return userTaskRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+        }
     }
 
     // Retrieve a specific user-task assignment by id
