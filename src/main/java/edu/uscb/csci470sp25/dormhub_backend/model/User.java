@@ -30,9 +30,20 @@ public class User {
 	@Email
 	private String email;
 	
+	
+	private String role;
+	
 	@OneToMany(mappedBy = "user")
 	@JsonIgnore
 	private List<UserTask> userTasks = new ArrayList<>();
+	
+	public String getRole() {
+		return role;
+	}
+	
+	public void setRole(String role) {
+		this.role = role;
+	}
 	
 	public Long getId() {
 		return id;

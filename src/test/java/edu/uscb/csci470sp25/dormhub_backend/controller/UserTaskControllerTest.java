@@ -133,7 +133,7 @@ public class UserTaskControllerTest {
         String updatedUserTaskJson = "{\"deadline\":\"2025-07-01\",\"status\":true}";
         logger.info("Testing updateUserTask with ID: {} and payload: {}",
                 testUserTaskId, updatedUserTaskJson);
-
+        
         // Note: Depending on your implementation,
         // you might choose to allow updating of only selectable fields.
         mockMvc.perform(put("/usertask/{id}", testUserTaskId)

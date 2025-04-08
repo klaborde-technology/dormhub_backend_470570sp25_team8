@@ -57,7 +57,7 @@ public class SecurityConfig {
                 // UserTask endpoints:
                 // GET and PUT are accessible by ADMIN GET is accessible by PRIVILEGED_USER
                 .requestMatchers(HttpMethod.GET, "/usertask/**").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
-                .requestMatchers(HttpMethod.PUT, "/usertask/**").hasAnyAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/usertask/**").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
                 // POST and DELETE require ADMIN only
                 .requestMatchers(HttpMethod.POST, "/usertask/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/usertask/**").hasAuthority("ADMIN")
