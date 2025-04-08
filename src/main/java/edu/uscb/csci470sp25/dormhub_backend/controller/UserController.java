@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import edu.uscb.csci470sp25.dormhub_backend.exception.UserNotFoundException;
@@ -17,18 +18,21 @@ public class UserController {
     private UserRepository userRepository;
 
     // Create a new user
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/user")
     public User newUser(@RequestBody User newUser) {
         return userRepository.save(newUser);
     }
 
     // Retrieve all users sorted by id in ascending order
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     // Retrieve a specific user by id
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/user/{id}")
     public User getUserById(@PathVariable("id") final Long id) {
         return userRepository.findById(id)
@@ -36,6 +40,7 @@ public class UserController {
     }
 
     // Update a user with a given id
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/user/{id}")
     public User updateUser(@RequestBody User newUser, @PathVariable Long id) {
         return userRepository.findById(id)
@@ -48,6 +53,7 @@ public class UserController {
     }
 
     // Delete a user by id
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/user/{id}")
     public String deleteUser(@PathVariable Long id) {
         if (!userRepository.existsById(id)) {
