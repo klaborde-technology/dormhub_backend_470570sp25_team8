@@ -57,11 +57,13 @@ public class UserTaskController {
                 	
                 	if (user.getRole().equals("ADMIN")) {
                 		userTask.setDeadline(updatedUserTask.getDeadline());
+                		userTask.setStatus(updatedUserTask.isStatus());
+                	}
+                	// If privileged user, they can only edit the task status
+                	else if (user.getRole().equals("PRIVILEGED_USER")) {
+                		userTask.setStatus(updatedUserTask.isStatus());
                 	}
                 	
-                    // Update fields that represent the association's details
-                    userTask.setStatus(updatedUserTask.isStatus());
-                    // You might also allow updating the associated user or task if needed
                     return userTaskRepository.save(userTask);
                 })
                 .orElseThrow(() -> new UserTaskNotFoundException(id));
