@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,9 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.uscb.csci470sp25.dormhub_backend.exception.UserTaskNotFoundException;
 import edu.uscb.csci470sp25.dormhub_backend.model.UserTask;
-import edu.uscb.csci470sp25.dormhub_backend.model.User;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserTaskRepository;
-
 
 @RestController
 public class UserTaskController {
@@ -26,7 +23,6 @@ public class UserTaskController {
     @Autowired
     private UserTaskRepository userTaskRepository;
 
-    
     // Create a new user-task assignment
     @PostMapping("/usertask")
     public UserTask newUserTask(@RequestBody UserTask newUserTask) {
@@ -51,19 +47,13 @@ public class UserTaskController {
 
     // Update an existing user-task assignment
     @PutMapping("/usertask/{id}")
-    public UserTask updateUserTask(@RequestBody UserTask updatedUserTask, @PathVariable Long id, @AuthenticationPrincipal User user) {
+    public UserTask updateUserTask(@RequestBody UserTask updatedUserTask, @PathVariable Long id) {
         return userTaskRepository.findById(id)
                 .map(userTask -> {
-                	
-                	if (user.getRole().equals("ADMIN")) {
-                		userTask.setDeadline(updatedUserTask.getDeadline());
-                		userTask.setStatus(updatedUserTask.isStatus());
-                	}
-                	// If privileged user, they can only edit the task status
-                	else if (user.getRole().equals("PRIVILEGED_USER")) {
-                		userTask.setStatus(updatedUserTask.isStatus());
-                	}
-                	
+                    // Update fields that represent the association's details
+                    userTask.setDeadline(updatedUserTask.getDeadline());
+                    userTask.setStatus(updatedUserTask.isStatus());
+                    // You might also allow updating the associated user or task if needed
                     return userTaskRepository.save(userTask);
                 })
                 .orElseThrow(() -> new UserTaskNotFoundException(id));

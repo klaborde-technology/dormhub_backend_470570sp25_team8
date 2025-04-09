@@ -83,7 +83,15 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-crypto</artifactId>
 		</dependency>
-
+		
+		<!-- ✅ Spring Security Test (for @WithMockUser) -->
+		<dependency>
+	        <groupId>org.springframework.security</groupId>
+	        <artifactId>spring-security-test</artifactId>
+	        <version>6.4.3</version> 
+	        <scope>test</scope>
+    	</dependency>
+		
 		<!-- ✅ JSON Web Token (JWT) for authentication -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
