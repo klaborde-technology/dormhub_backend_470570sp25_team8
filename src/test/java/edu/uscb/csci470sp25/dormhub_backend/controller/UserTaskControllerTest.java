@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +78,7 @@ public class UserTaskControllerTest {
                 .getContentAsString();
         Integer utid = JsonPath.read(userTaskResponse, "$.id");
         testUserTaskId = utid.longValue();
-
+        
         logger.info("Setup complete. Test user ID: {}, Test task ID: {}, Test userTask ID: {}",
                 testUserId, testTaskId, testUserTaskId);
     }
@@ -116,13 +117,19 @@ public class UserTaskControllerTest {
         logger.info("testCreateUserTask passed.");
     }
 
-    @Test
     public void testGetAllUserTasks() throws Exception {
         logger.info("Testing getAllUserTasks");
-
-        mockMvc.perform(get("/usertasks"))
+        
+        String role = "ADMIN";
+        String username = "testuser";
+        
+        mockMvc.perform(get("/usertasks")
+                	.with(user(username).password("password1234").roles(role))
+                )
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].user.id").value(testUserId))  // Correct path for the user ID
+                .andExpect(jsonPath("$[0].task.id").value(testTaskId)); // Check if the task ID is included
 
         logger.info("testGetAllUserTasks passed.");
     }
