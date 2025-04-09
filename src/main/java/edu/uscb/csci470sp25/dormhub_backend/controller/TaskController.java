@@ -40,7 +40,7 @@ public class TaskController {
     }
 
     // Update a task by id
-    // @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('PRIVILEGED_USER')")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('PRIVILEGED_USER')")
     @PutMapping("/task/{id}")
     public Task updateTask(@RequestBody Task updatedTask, @PathVariable Long id) {
         return taskRepository.findById(id)

@@ -40,7 +40,6 @@ public class UserController {
     }
 
     // Update a user with a given id
-    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/user/{id}")
     public User updateUser(@RequestBody User newUser, @PathVariable Long id) {
         return userRepository.findById(id)
