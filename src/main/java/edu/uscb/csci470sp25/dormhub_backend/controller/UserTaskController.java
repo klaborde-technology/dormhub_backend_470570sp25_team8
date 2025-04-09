@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import edu.uscb.csci470sp25.dormhub_backend.exception.UserTaskNotFoundException;
+import edu.uscb.csci470sp25.dormhub_backend.model.User;
 import edu.uscb.csci470sp25.dormhub_backend.model.UserTask;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserTaskRepository;
 
@@ -30,12 +32,22 @@ public class UserTaskController {
     }
 
     @GetMapping("/usertasks")
-    public List<UserTask> getAllUserTasks(@RequestParam(required = false) Boolean status) {
-        if (status != null) {
-            return userTaskRepository.findByStatus(status, Sort.by(Sort.Direction.ASC, "id"));
-        } else {
-            return userTaskRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
-        }
+    public List<UserTask> getAllUserTasks(@RequestParam(required = false) Boolean status, @AuthenticationPrincipal User user) {
+        
+    	if (user.getRole().equals("PRIVILEGED_USER")) {
+    		if (status != null) {
+                return userTaskRepository.findByUserIdAndStatus(user.getId(), status, Sort.by(Sort.Direction.ASC, "id"));
+            } else {
+                return userTaskRepository.findByUserId(user.getId(), Sort.by(Sort.Direction.ASC, "id"));
+            }
+    	} else {
+    		if (status != null) {
+                return userTaskRepository.findByStatus(status, Sort.by(Sort.Direction.ASC, "id"));
+            } else {
+                return userTaskRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+            }
+    	}
+
     }
 
     // Retrieve a specific user-task assignment by id
