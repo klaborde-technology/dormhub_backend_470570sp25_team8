@@ -10,5 +10,5 @@ import java.util.List;
 public interface UserTaskRepository extends JpaRepository<UserTask, Long> {
 	List<UserTask> findByStatus(Boolean status, Sort sort);
     List<UserTask> findByUserId(Long userId, Sort sort);
-    List<UserTask> findByUserIdAndStatus(Long userId, Boolean status, Sort sort);
+    List<UserTask> findByUserIdAndStatus(Boolean status, Long userId, Sort sort);
 }

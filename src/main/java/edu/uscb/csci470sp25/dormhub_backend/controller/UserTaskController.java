@@ -33,20 +33,13 @@ public class UserTaskController {
 
     @GetMapping("/usertasks")
     public List<UserTask> getAllUserTasks(@RequestParam(required = false) Boolean status, @AuthenticationPrincipal User user) {
-        
-    	if (user.getRole().equals("PRIVILEGED_USER")) {
-    		if (status != null) {
-                return userTaskRepository.findByUserIdAndStatus(user.getId(), status, Sort.by(Sort.Direction.ASC, "id"));
-            } else {
-                return userTaskRepository.findByUserId(user.getId(), Sort.by(Sort.Direction.ASC, "id"));
-            }
-    	} else {
-    		if (status != null) {
-                return userTaskRepository.findByStatus(status, Sort.by(Sort.Direction.ASC, "id"));
-            } else {
-                return userTaskRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
-            }
-    	}
+        if (status != null) {
+            // Filter tasks by status and user ID (for privileged users)
+            return userTaskRepository.findByUserIdAndStatus(status, user.getId(), Sort.by(Sort.Direction.ASC, "id"));
+        } else {
+            // Retrieve all tasks for the logged-in user
+            return userTaskRepository.findByUserId(user.getId(), Sort.by(Sort.Direction.ASC, "id"));
+        }
 
     }
 

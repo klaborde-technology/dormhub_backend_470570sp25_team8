@@ -20,6 +20,9 @@ public class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private AppUserRepository appUserRepository;
 
     @Test
     public void testFindById() {
@@ -27,7 +30,7 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("johndoe"); 
         user.setName("John Doe");
-        user.setEmail("johndoe@example.com");
+        
         user = userRepository.save(user);
 
         // Act
@@ -44,7 +47,6 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("janedoe");
         user.setName("Jane Doe");
-        user.setEmail("janedoe@example.com");
 
         // Act
         User savedUser = userRepository.save(user);
@@ -60,7 +62,6 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("johnsmith");
         user.setName("John Smith");
-        user.setEmail("johnsmith@example.com");
         user = userRepository.save(user);
         Long userId = user.getId();
 
