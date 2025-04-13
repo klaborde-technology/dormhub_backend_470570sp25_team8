@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import edu.uscb.csci470sp25.dormhub_backend.dto.UserDTO;
 import edu.uscb.csci470sp25.dormhub_backend.exception.UserNotFoundException;
 import edu.uscb.csci470sp25.dormhub_backend.model.AppUser;
 import edu.uscb.csci470sp25.dormhub_backend.model.User;
@@ -26,7 +27,7 @@ public class UserController {
     // Create a new user
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/user")
-    public User newUser(@RequestBody User newUser) {
+    public UserDTO newUser(@RequestBody User newUser) {
         // Fetch the AppUser by ID (from the app_users table)
         AppUser appUser = appUserRepository.findById(newUser.getAppUser().getId())
                 .orElseThrow(() -> new UserNotFoundException(newUser.getAppUser().getId()));
@@ -34,33 +35,41 @@ public class UserController {
         // Set the appUser in the newUser object
         newUser.setAppUser(appUser);
         
+        User savedUser = userRepository.save(newUser);
+        
         // Save the new user
-        return userRepository.save(newUser);
+        return new UserDTO(savedUser);
     }
 
     // Retrieve all users sorted by id in ascending order
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users")
-    public List<User> getAllUsers() {
-        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+        		.stream()
+        		.map(UserDTO::new)
+        		.toList();
     }
 
     // Retrieve a specific user by id
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/user/{id}")
-    public User getUserById(@PathVariable("id") final Long id) {
+    public UserDTO getUserById(@PathVariable("id") final Long id) {
         return userRepository.findById(id)
+        		.map(UserDTO::new)
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
     // Update a user with a given id
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/user/{id}")
-    public User updateUser(@RequestBody User newUser, @PathVariable Long id) {
+    public UserDTO updateUser(@RequestBody User newUser, @PathVariable Long id) {
         return userRepository.findById(id)
                 .map(user -> {
                     user.setUsername(newUser.getUsername());
                     user.setName(newUser.getName());
-                    return userRepository.save(user);
+                    User updated = userRepository.save(user);
+                    return new UserDTO(updated);
                 }).orElseThrow(() -> new UserNotFoundException(id));
     }
 
