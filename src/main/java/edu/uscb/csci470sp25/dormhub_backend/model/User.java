@@ -29,8 +29,8 @@ public class User {
 	
 	private String name;	
 	
-    @ManyToOne
-    @JoinColumn(name = "app_user_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "app_user_id", referencedColumnName = "id", nullable = false)
     private AppUser appUser;
 	
 	public Long getId() {

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +22,13 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.jayway.jsonpath.JsonPath;
 
+import edu.uscb.csci470sp25.dormhub_backend.model.AppUser;
+import edu.uscb.csci470sp25.dormhub_backend.repository.AppUserRepository;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@WithMockUser(username = "admin", authorities = {"ADMIN"})
 public class UserControllerTest {
 
     private static final Logger logger = LoggerFactory.getLogger(UserControllerTest.class);
@@ -33,15 +38,31 @@ public class UserControllerTest {
 
     @Autowired
     private WebApplicationContext webApplicationContext;
+    
+    @Autowired
+    private AppUserRepository appUserRepository;
 
     private Long testUserId;
+    private Long testAppUserId;
 
     @BeforeEach
     public void setup() throws Exception {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
-
+        
+        // Create the test AppUser
+        AppUser testAppUser = new AppUser();
+        testAppUser.setEmail("privilegeduser@example.com");
+        testAppUser.setPassword("password");
+        testAppUser.setRole("PRIVILEGED_USER");
+        testAppUser = appUserRepository.save(testAppUser);
+        testAppUserId = testAppUser.getId();
+        
         // Insert a test user into the database and retrieve its ID
-        String newUserJson = "{\"username\":\"johndoe\",\"name\":\"John Doe\",\"email\":\"johndoe@example.com\"}";
+        String newUserJson = String.format(
+        		"{\"username\":\"johndoe\",\"name\":\"John Doe\",\"email\":\"johndoe@example.com\",\"appUser\":{\"id\":%d}}",
+        		testAppUserId
+        );
+       
         String response = mockMvc.perform(post("/user")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newUserJson))
@@ -69,16 +90,20 @@ public class UserControllerTest {
 
     @Test
     public void testCreateUser() throws Exception {
-        String newUserJson = "{\"username\":\"janedoe\",\"name\":\"Jane Doe\",\"email\":\"janedoe@example.com\"}";
+        String newUserJson = String.format(
+        		"{\"username\":\"janedoe\",\"name\":\"Jane Doe\",\"appUser\":{\"id\":%d}}",
+        		testAppUserId
+        );
+        
         logger.info("Testing createUser with payload: {}", newUserJson);
-
+        
         mockMvc.perform(post("/user")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newUserJson))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("janedoe"))
                 .andExpect(jsonPath("$.name").value("Jane Doe"))
-                .andExpect(jsonPath("$.email").value("janedoe@example.com"));
+                .andExpect(jsonPath("$.email").value("privilegeduser@example.com"));
 
         logger.info("testCreateUser passed.");
     }
@@ -96,7 +121,12 @@ public class UserControllerTest {
 
     @Test
     public void testUpdateUser() throws Exception {
-        String updatedUserJson = "{\"username\":\"johndoe_updated\",\"name\":\"John Doe Updated\",\"email\":\"johndoe.updated@example.com\"}";
+        String updatedUserJson = String.format(
+        		"{\"username\":\"johndoe_updated\",\"name\":\"John Doe Updated\",\"appUser\":{\"id\":%d}}",
+        		testAppUserId
+        
+        );
+        
         logger.info("Testing updateUser with ID: {} and payload: {}", testUserId, updatedUserJson);
 
         mockMvc.perform(put("/user/{id}", testUserId)
@@ -105,7 +135,7 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("johndoe_updated"))
                 .andExpect(jsonPath("$.name").value("John Doe Updated"))
-                .andExpect(jsonPath("$.email").value("johndoe.updated@example.com"));
+                .andExpect(jsonPath("$.email").value("privilegeduser@example.com"));
 
         logger.info("testUpdateUser passed.");
     }
