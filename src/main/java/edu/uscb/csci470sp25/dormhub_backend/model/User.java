@@ -9,6 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
@@ -25,14 +27,11 @@ public class User {
 	@NotBlank
 	private String username;
 	
-	private String name;
+	private String name;	
 	
-	@Email
-	private String email;
-	
-	@OneToMany(mappedBy = "user")
-	@JsonIgnore
-	private List<UserTask> userTasks = new ArrayList<>();
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "app_user_id", referencedColumnName = "id", nullable = false)
+    private AppUser appUser;
 	
 	public Long getId() {
 		return id;
@@ -58,20 +57,11 @@ public class User {
 		this.name = name;
 	}
 	
-	public String getEmail() {
-		return email;
-	}
-	
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	
-	// Methods to manage the userTasks
-    public List<UserTask> getUserTasks() {
-        return userTasks;
+	public AppUser getAppUser() {
+        return appUser;
     }
-    
-    public void addUserTask(UserTask userTask) {
-        userTasks.add(userTask);
-    }	
+
+    public void setAppUser(AppUser appUser) {
+        this.appUser = appUser;
+    }
 }
