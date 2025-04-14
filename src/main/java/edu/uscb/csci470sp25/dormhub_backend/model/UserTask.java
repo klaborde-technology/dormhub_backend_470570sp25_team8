@@ -2,6 +2,8 @@ package edu.uscb.csci470sp25.dormhub_backend.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +28,7 @@ public class UserTask {
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")  // Add this annotation
     private LocalDate deadline;
     
     private boolean status;
