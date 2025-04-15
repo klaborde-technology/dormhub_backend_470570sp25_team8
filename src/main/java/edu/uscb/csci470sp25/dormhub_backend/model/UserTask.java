@@ -20,7 +20,7 @@ public class UserTask {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;  
 
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -31,7 +31,7 @@ public class UserTask {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")  // Add this annotation
     private LocalDate deadline;
     
-    private boolean status;
+    private Boolean status;
 
     public Long getId() {
         return id;
@@ -65,7 +65,7 @@ public class UserTask {
         this.deadline = deadline;
     }
     
-    public boolean isStatus() {
+    public Boolean isStatus() {
         return status;
     }
     

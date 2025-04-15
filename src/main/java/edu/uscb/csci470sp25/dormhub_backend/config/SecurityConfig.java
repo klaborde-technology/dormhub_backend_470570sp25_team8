@@ -2,7 +2,6 @@ package edu.uscb.csci470sp25.dormhub_backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.uscb.csci470sp25.dormhub_backend.security.JwtAuthenticationFilter;
-import edu.uscb.csci470sp25.dormhub_backend.repository.AppUserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.security.JwtAuthEntryPoint;
 import edu.uscb.csci470sp25.dormhub_backend.security.JwtUtil;
@@ -33,13 +32,11 @@ public class SecurityConfig {
 
     private final JwtUtil jwtUtil;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
-    private final AppUserRepository appUserRepository;
     private final UserRepository userRepository;
 
-    public SecurityConfig(JwtUtil jwtUtil, JwtAuthEntryPoint jwtAuthEntryPoint, AppUserRepository appUserRepository, UserRepository userRepository) {
+    public SecurityConfig(JwtUtil jwtUtil, JwtAuthEntryPoint jwtAuthEntryPoint, UserRepository userRepository) {
         this.jwtUtil = jwtUtil;
         this.jwtAuthEntryPoint = jwtAuthEntryPoint;
-        this.appUserRepository = appUserRepository;
         this.userRepository = userRepository;
         
     }
@@ -64,17 +61,17 @@ public class SecurityConfig {
                 // UserTask endpoints:
                 // GET and PUT are accessible by ADMIN GET is accessible by PRIVILEGED_USER
                 .requestMatchers(HttpMethod.GET, "/usertasks").hasAnyAuthority("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/usertask/{id}").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
-                .requestMatchers(HttpMethod.PUT, "/usertask/{id}").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
+                .requestMatchers(HttpMethod.GET, "/usertasks/**").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
+                .requestMatchers(HttpMethod.PUT, "/usertask/**").hasAnyAuthority("ADMIN", "PRIVILEGED_USER")
                 // POST and DELETE require ADMIN only
-                .requestMatchers(HttpMethod.POST, "/usertask/{id}").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/usertask/{id}").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/usertask/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/usertask/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint(jwtAuthEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler()))
-            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, appUserRepository, userRepository), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userRepository), UsernamePasswordAuthenticationFilter.class)
             .httpBasic(httpBasic -> httpBasic.disable())
             .formLogin(form -> form.disable());
 

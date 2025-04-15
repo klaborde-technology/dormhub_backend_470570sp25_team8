@@ -36,6 +36,7 @@ public class UserTaskRepositoryTest {
         User user = new User();
         user.setUsername("testuser");
         user.setName("Test User");
+        user.setEmail("testuser@example.com");
         user = userRepository.save(user);
 
         // Arrange: create and save a valid Task
@@ -68,6 +69,7 @@ public class UserTaskRepositoryTest {
         User user = new User();
         user.setUsername("saveuser");
         user.setName("Save Test User");
+        user.setEmail("saveduser@example.com");
         user = userRepository.save(user);
 
         Task task = new Task();
@@ -94,6 +96,7 @@ public class UserTaskRepositoryTest {
         User user = new User();
         user.setUsername("deleteuser");
         user.setName("Delete User");
+        user.setEmail("deleteuser@example.com");
         user = userRepository.save(user);
 
         Task task = new Task();

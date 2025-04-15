@@ -11,10 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import edu.uscb.csci470sp25.dormhub_backend.model.AppUser;
 import edu.uscb.csci470sp25.dormhub_backend.model.User;
-import edu.uscb.csci470sp25.dormhub_backend.repository.AppUserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserRepository;
 
 import java.io.IOException;
@@ -22,11 +19,9 @@ import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
    private final JwtUtil jwtUtil;
-   private final AppUserRepository appUserRepository;
    private final UserRepository userRepository;
-   public JwtAuthenticationFilter(JwtUtil jwtUtil, AppUserRepository appUserRepository, UserRepository userRepository) {
+   public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepository) {
        this.jwtUtil = jwtUtil;
-       this.appUserRepository = appUserRepository;
        this.userRepository = userRepository;
    }
    
@@ -41,12 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                String email = claims.getSubject();
                String role = claims.get("role", String.class);
 
-               // ✅ Get the AppUser from DB
-               AppUser appUser = appUserRepository.findByEmail(email)
-                       .orElseThrow(() -> new RuntimeException("AppUser not found"));
-
                // ✅ Get the actual User from DB
-               User user = userRepository.findByAppUser(appUser)
+               User user = userRepository.findByEmail(email)
                        .orElseThrow(() -> new RuntimeException("User not found"));
 
                UsernamePasswordAuthenticationToken authentication =
