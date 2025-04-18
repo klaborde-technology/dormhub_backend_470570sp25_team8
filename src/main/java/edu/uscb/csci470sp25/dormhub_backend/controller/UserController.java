@@ -27,11 +27,11 @@ public class UserController {
         return userRepository.save(newUser);
     }
  
-    // Retrieve all users sorted by id in ascending order
+    // Retrieve all users sorted by id and role in ascending order
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users")
     public List<User> getAllUsers() {
-        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    	return userRepository.findByRoleOrderByIdAsc("PRIVILEGED_USER");
 
     }
  
@@ -39,9 +39,13 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/user/{id}")
     public User getUserById(@PathVariable("id") final Long id) {
-        return userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
 
+        if (!"PRIVILEGED_USER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Access denied: not a PRIVILEGED USER");
+        }
+        return user;
     }
  
     // Update a user with a given id
