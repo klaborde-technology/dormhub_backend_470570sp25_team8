@@ -1,6 +1,7 @@
 package edu.uscb.csci470sp25.dormhub_backend.repository;
 
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
+    List<User> findByRoleOrderByIdAsc(String role);
+
 }
