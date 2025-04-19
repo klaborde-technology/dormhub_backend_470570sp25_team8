@@ -91,12 +91,19 @@ public class UserTaskController {
     
     @PreAuthorize("hasAuthority('PRIVILEGED_USER')")
     @GetMapping("/usertasks/user/{id}")
-    public List<UserTask> getTasksForPrivilegedUser(@PathVariable("id") Long userId, @AuthenticationPrincipal User currentUser) {
+    public List<UserTask> getTasksForPrivilegedUser(
+    		@PathVariable("id") Long userId,
+    		@RequestParam(required = false) Boolean status,
+    		@AuthenticationPrincipal User currentUser) {
         if (!currentUser.getId().equals(userId)) {
             throw new AccessDeniedException("You can only view your own tasks.");
         }
         try {
-            return userTaskRepository.findByUserId(userId, Sort.by(Sort.Direction.ASC, "id"));
+        	if (status != null) {
+        		return userTaskRepository.findByUserIdAndStatus(userId, status, Sort.by(Sort.Direction.ASC, "id"));     	
+        	} else {
+        		return userTaskRepository.findByUserId(userId, Sort.by(Sort.Direction.ASC, "id"));
+        	}
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied", e);
         }
