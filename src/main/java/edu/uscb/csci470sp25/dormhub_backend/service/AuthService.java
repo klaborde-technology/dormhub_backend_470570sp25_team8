@@ -63,6 +63,6 @@ public class AuthService {
         }
 
         // ✅ Generate JWT token using JwtUtil
-        return jwtUtil.generateToken(user.getEmail(), user.getRole());
+        return jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getId());
     }
 }
