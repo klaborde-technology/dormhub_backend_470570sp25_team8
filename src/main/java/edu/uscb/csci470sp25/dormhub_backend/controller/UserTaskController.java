@@ -122,8 +122,6 @@ public class UserTaskController {
                     if (isAdmin) {
                         userTask.setDeadline(updatedUserTask.getDeadline());
                         userTask.setStatus(updatedUserTask.isStatus());
-                        userTask.setUser(updatedUserTask.getUser());
-                        userTask.setTask(updatedUserTask.getTask());
                     } else {
                         userTask.setStatus(updatedUserTask.isStatus());
                     }
