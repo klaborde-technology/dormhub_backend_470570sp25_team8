@@ -91,7 +91,7 @@ public class UserTaskController {
     
     @PreAuthorize("hasAuthority('PRIVILEGED_USER')")
     @GetMapping("/usertasks/user/{id}")
-    public List<UserTask> getTasksForPrivilegedUser(@PathVariable Long userId, @AuthenticationPrincipal User currentUser) {
+    public List<UserTask> getTasksForPrivilegedUser(@PathVariable("id") Long userId, @AuthenticationPrincipal User currentUser) {
         if (!currentUser.getId().equals(userId)) {
             throw new AccessDeniedException("You can only view your own tasks.");
         }
