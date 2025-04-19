@@ -5,9 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import edu.uscb.csci470sp25.dormhub_backend.exception.UserNotFoundException;
-import edu.uscb.csci470sp25.dormhub_backend.model.AppUser;
 import edu.uscb.csci470sp25.dormhub_backend.model.User;
-import edu.uscb.csci470sp25.dormhub_backend.repository.AppUserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserRepository;
  
 @RestController
@@ -15,28 +13,25 @@ public class UserController {
  
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private AppUserRepository appUserRepository;
  
     // Create a new user
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/user")
     public User newUser(@RequestBody User newUser) {
-        // Fetch the AppUser by ID (from the app_users table)
-        AppUser appUser = appUserRepository.findById(newUser.getAppUser().getId())
-                .orElseThrow(() -> new UserNotFoundException(newUser.getAppUser().getId()));
-        // Set the appUser in the newUser object
-        newUser.setAppUser(appUser);
-        // Save the new user
+        if (userRepository.existsByUsername(newUser.getUsername())) {
+            throw new RuntimeException("Username is already taken");
+        }
+        if (userRepository.existsByEmail(newUser.getEmail())) {
+            throw new RuntimeException("Email is already in use");
+        }
         return userRepository.save(newUser);
     }
  
-    // Retrieve all users sorted by id in ascending order
+    // Retrieve all users sorted by id and role in ascending order
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/users")
     public List<User> getAllUsers() {
-        return userRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
+    	return userRepository.findByRoleOrderByIdAsc("PRIVILEGED_USER");
 
     }
  
@@ -44,9 +39,13 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/user/{id}")
     public User getUserById(@PathVariable("id") final Long id) {
-        return userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
 
+        if (!"PRIVILEGED_USER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Access denied: not a PRIVILEGED USER");
+        }
+        return user;
     }
  
     // Update a user with a given id
@@ -57,6 +56,9 @@ public class UserController {
                 .map(user -> {
                     user.setUsername(newUser.getUsername());
                     user.setName(newUser.getName());
+                    user.setEmail(newUser.getEmail());
+                    user.setPassword(newUser.getPassword());
+                    user.setRole(newUser.getRole());
                     return userRepository.save(user);
                 }).orElseThrow(() -> new UserNotFoundException(id));
 

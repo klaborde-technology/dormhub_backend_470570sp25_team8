@@ -21,8 +21,6 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
     
-    @Autowired
-    private AppUserRepository appUserRepository;
 
     @Test
     public void testFindById() {
@@ -30,6 +28,7 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("johndoe"); 
         user.setName("John Doe");
+        user.setEmail("janedoe@example.com");
         
         user = userRepository.save(user);
 
@@ -47,6 +46,7 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("janedoe");
         user.setName("Jane Doe");
+        user.setEmail("janedoe@example.com");
 
         // Act
         User savedUser = userRepository.save(user);
@@ -62,6 +62,7 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("johnsmith");
         user.setName("John Smith");
+        user.setEmail("janedoe@example.com");
         user = userRepository.save(user);
         Long userId = user.getId();
 
@@ -70,5 +71,23 @@ public class UserRepositoryTest {
 
         // Assert
         assertFalse(userRepository.findById(userId).isPresent());
+    }
+    
+    @Test
+    public void testFindByEmail() {
+        // Arrange
+        User user = new User();
+        user.setUsername("janedoe");
+        user.setName("Jane Doe");
+        user.setEmail("janedoe@example.com");
+        
+        userRepository.save(user);
+
+        // Act
+        Optional<User> foundUser = userRepository.findByEmail("janedoe@example.com");
+
+        // Assert
+        assertTrue(foundUser.isPresent());
+        assertEquals("Jane Doe", foundUser.get().getName());
     }
 }

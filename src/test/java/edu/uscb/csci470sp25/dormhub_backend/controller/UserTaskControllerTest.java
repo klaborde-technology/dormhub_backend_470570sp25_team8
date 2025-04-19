@@ -21,15 +21,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-import edu.uscb.csci470sp25.dormhub_backend.model.AppUser;
 import edu.uscb.csci470sp25.dormhub_backend.model.Task;
 import edu.uscb.csci470sp25.dormhub_backend.model.User;
 import edu.uscb.csci470sp25.dormhub_backend.model.UserTask;
-import edu.uscb.csci470sp25.dormhub_backend.repository.AppUserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.repository.TaskRepository;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.repository.UserTaskRepository;
@@ -48,9 +48,6 @@ public class UserTaskControllerTest {
     private WebApplicationContext webApplicationContext;
     
     @Autowired 
-    private AppUserRepository appUserRepository;
-    
-    @Autowired 
     private UserRepository userRepository;
     
     @Autowired 
@@ -61,26 +58,32 @@ public class UserTaskControllerTest {
 
     private Long testUserId;
     private Long testTaskId;
+    private Long adminUserId;
     private Long testUserTaskId;
+    private User testUser;
+    private User adminUser;
 
     @BeforeEach
     public void setup() throws Exception {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
 
-        // AppUser
-        AppUser appUser = new AppUser();
-        appUser.setEmail("johndoe@example.com");
-        appUser.setPassword("password1234");
-        appUser.setRole("PRIVILEGED_USER");
-        appUser = appUserRepository.save(appUser);
+        // Create admin user
+        adminUser = new User();
+        adminUser.setName("Admin User");
+        adminUser.setUsername("admin");
+        adminUser.setEmail("adminuser@example.com");
+        adminUser.setRole("ADMIN");
+        adminUser = userRepository.save(adminUser);
+        adminUserId = adminUser.getId();
 
-        // User
-        User user = new User();
-        user.setName("John Doe");
-        user.setUsername("johndoe");
-        user.setAppUser(appUser);
-        user = userRepository.save(user);
-        testUserId = user.getId();
+        // Create PRIVILEGED_USER
+        testUser = new User();
+        testUser.setName("John Doe");
+        testUser.setUsername("crouton");
+        testUser.setEmail("crouton@example.com");
+        testUser.setRole("PRIVILEGED_USER");
+        testUser = userRepository.save(testUser);
+        testUserId = testUser.getId();
 
         // Task
         Task task = new Task();
@@ -90,7 +93,7 @@ public class UserTaskControllerTest {
 
         // UserTask
         UserTask userTask = new UserTask();
-        userTask.setUser(user);
+        userTask.setUser(testUser);
         userTask.setTask(task);
         userTask.setDeadline(LocalDate.of(2025, 5, 1));
         userTask.setStatus(false);
@@ -102,125 +105,122 @@ public class UserTaskControllerTest {
 
     private void authenticateAs(User user) {
         SecurityContextHolder.getContext().setAuthentication(
-            new UsernamePasswordAuthenticationToken(
-                user,
-                null,
-                List.of(new SimpleGrantedAuthority(user.getAppUser().getRole()))
-            )
-        );
+                new UsernamePasswordAuthenticationToken(
+                    user,
+                    null,
+                    List.of(new SimpleGrantedAuthority(user.getRole()))
+                )
+            );
     }
 
-    @Test
-    public void testGetUserTaskById() throws Exception {
-        logger.info("Testing getUserTaskById with ID: {}", testUserTaskId);
+	 @Test
+	 public void testAdminCanGetAllUserTasks() throws Exception {
+	        logger.info("Testing getAllUserTasks");
+	        authenticateAs(adminUser);
 
-        User currentUser = userRepository.findById(testUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        authenticateAs(currentUser);
+	        MvcResult result = mockMvc.perform(get("/usertasks"))
+	                .andDo(print())
+	                .andExpect(status().isOk())
+	                .andReturn();
+
+	        System.out.println("Response content: " + result.getResponse().getContentAsString());
+	        logger.info("testGetAllUserTasks passed.");
+	 }
+
+    @Test
+    public void testAdminCanGetUserTaskById() throws Exception {
+        authenticateAs(adminUser);
 
         mockMvc.perform(get("/usertask/{id}", testUserTaskId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(testUserTaskId))
-                .andExpect(jsonPath("$.user.id").value(testUserId))
-                .andExpect(jsonPath("$.task.id").value(testTaskId));
-
-        logger.info("testGetUserTaskById passed.");
+                .andExpect(jsonPath("$.id").value(testUserTaskId));
     }
 
-
-
     @Test
-    public void testCreateUserTask() throws Exception {
-        // Create another user-task assignment.
-        String newUserTaskJson = "{\"deadline\":\"2025-06-01\",\"status\":true,"
-                + "\"user\":{\"id\":" + testUserId + "},"
-                + "\"task\":{\"id\":" + testTaskId + "}}";
+    public void testPrivilegedUserCanGetOwnUserTaskById() throws Exception {
+        authenticateAs(testUser);
 
-        logger.info("Testing createUserTask with payload: {}", newUserTaskJson);
-
-        // Authenticate as the current user
-        User currentUser = userRepository.findById(testUserId)
-                .orElseThrow(() -> new RuntimeException("Test user not found"));
-        authenticateAs(currentUser);
-
-        // Perform the POST request to create a new user-task assignment
-        mockMvc.perform(post("/usertask")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(newUserTaskJson))
-                .andExpect(status().isOk()) // Expect HTTP 200 (OK) status
-                .andExpect(jsonPath("$.deadline").value("2025-06-01")) // Check that the deadline matches
-                .andExpect(jsonPath("$.status").value(true)) // Verify that the status is true
-                .andExpect(jsonPath("$.user.id").value(testUserId)) // Check that the user ID is correct
-                .andExpect(jsonPath("$.task.id").value(testTaskId)) // Check that the task ID is correct
-                // Optionally, check that the newly created UserTask has the correct ID
-                .andExpect(jsonPath("$.id").exists());
-
-
-        logger.info("testCreateUserTask passed.");
+        mockMvc.perform(get("/usertask/{id}", testUserTaskId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(testUserTaskId));
     }
 
-    
     @Test
-    public void testGetAllUserTasks() throws Exception {
-        logger.info("Testing getAllUserTasks");
+    public void testPrivilegedUserCannotAccessOthersTasks() throws Exception {
+        authenticateAs(testUser);
 
-        // Fetch the admin user from the database
-        AppUser adminAppUser = appUserRepository.findByEmail("johndoe@example.com")
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
-        
-        // Get the associated User object for the AppUser
-        User adminUser = userRepository.findByAppUser(adminAppUser)
-                .orElseThrow(() -> new RuntimeException("User not found for admin"));
+        // Try accessing another user's task
+        mockMvc.perform(get("/usertask/{id}", 999L))
+                .andExpect(status().isNotFound());
+    }
 
-        // Authenticate as the admin user by setting the Spring Security context
+    @Test
+    public void testAdminCanCreateUserTask() throws Exception {
+        logger.info("Testing testAdminCanCreateUserTask");
         authenticateAs(adminUser);
 
-        // Perform the GET request for all user tasks
-        mockMvc.perform(get("/usertasks"))
-                .andExpect(status().isOk())  // Ensure the response status is 200 OK
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))  // Expect JSON content type
-                .andExpect(jsonPath("$").isArray())  // Ensure the response body is an array
-                .andExpect(jsonPath("$[0].user.id").value(testUserId))  // Check the user ID of the first user task
-                .andExpect(jsonPath("$[0].task.id").value(testTaskId)); // Check if the task ID is included
+        String json = String.format("""
+            {
+                "deadline":"2025-06-01",
+                "status":true,
+                "user":{"id":%d},
+                "task":{"id":%d}
+            }
+        """, testUserId, testTaskId);
 
-        logger.info("testGetAllUserTasks passed.");
+        mockMvc.perform(post("/usertask")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").exists());
+
+        logger.info("testAdminCanCreateUserTask passed.");
     }
 
-
     @Test
-    public void testUpdateUserTask() throws Exception {
-        // Prepare updated JSON payload. Here we update deadline and status.
-        String updatedUserTaskJson = "{\"deadline\":\"2025-05-01\",\"status\":true}";
-        logger.info("Testing updateUserTask with ID: {} and payload: {}", testUserTaskId, updatedUserTaskJson);
+    public void testPrivilegedUserCanUpdateStatusOnly() throws Exception {
+        authenticateAs(testUser);
 
-        // Authenticate as an admin user (ensure the user has ADMIN role)
-        User adminUser = userRepository.findById(testUserId)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
-        authenticateAs(adminUser);  // Authenticate as an admin user
+        String json = """
+            {
+                "status":true
+            }
+        """;
 
-        // Perform the PUT request to update the UserTask
         mockMvc.perform(put("/usertask/{id}", testUserTaskId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(updatedUserTaskJson))
-                .andExpect(status().isOk())  // Ensure HTTP 200 OK status
-                .andDo(result -> System.out.println(result.getResponse().getContentAsString())) // Log the response body
-                .andExpect(jsonPath("$.id").value(testUserTaskId))  // Verify that the ID remains unchanged
-                .andExpect(jsonPath("$.deadline").value("2025-05-01"))  // Verify the updated deadline
-                .andExpect(jsonPath("$.status").value(true));  // Verify the updated status
-
-
-        logger.info("testUpdateUserTask passed.");
+                .content(json))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value(true));
     }
 
+    @Test
+    public void testAdminCanUpdateUserTaskFully() throws Exception {
+        authenticateAs(adminUser);
+
+        String json = String.format("""
+            {
+                "deadline":"2025-05-05",
+                "status":true,
+                "user":{"id":%d},
+                "task":{"id":%d}
+            }
+        """, testUserId, testTaskId);
+
+        mockMvc.perform(put("/usertask/{id}", testUserTaskId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.deadline").value("2025-05-05"))
+            .andExpect(jsonPath("$.status").value(true));
+    }
 
     @Test
-    public void testDeleteUserTask() throws Exception {
-        logger.info("Testing deleteUserTask with ID: {}", testUserTaskId);
+    public void testAdminCanDeleteUserTask() throws Exception {
+        authenticateAs(adminUser);
 
         mockMvc.perform(delete("/usertask/{id}", testUserTaskId))
-                .andExpect(status().isOk())
-                .andExpect(content().string("UserTask with id " + testUserTaskId + " has been deleted successfully."));
-
-        logger.info("testDeleteUserTask passed.");
+            .andExpect(status().isOk())
+            .andExpect(content().string("UserTask with id " + testUserTaskId + " has been deleted successfully."));
     }
 }

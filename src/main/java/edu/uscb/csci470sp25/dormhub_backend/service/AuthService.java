@@ -1,7 +1,7 @@
 package edu.uscb.csci470sp25.dormhub_backend.service;
 
-import edu.uscb.csci470sp25.dormhub_backend.model.AppUser;
-import edu.uscb.csci470sp25.dormhub_backend.repository.AppUserRepository;
+import edu.uscb.csci470sp25.dormhub_backend.model.User;
+import edu.uscb.csci470sp25.dormhub_backend.repository.UserRepository;
 import edu.uscb.csci470sp25.dormhub_backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,7 +13,7 @@ import java.util.Optional;
 public class AuthService {
 
     @Autowired
-    private AppUserRepository appUserRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -24,16 +24,23 @@ public class AuthService {
     /**
      * Registers a new user by encoding their password and saving them to the database.
      */
-    public String registerUser(String email, String password, String role) {
+    public String registerUser(String name, String username, String email, String role, String password) {
         // ✅ Check if user already exists
-        if (appUserRepository.findByEmail(email).isPresent()) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("User already exists.");
         }
 
         // ✅ Encode password before saving user
         String hashedPassword = passwordEncoder.encode(password);
-        AppUser newUser = new AppUser(email, hashedPassword, role);
-        appUserRepository.save(newUser);
+        User newUser = new User();
+        newUser.setName(name);
+        newUser.setUsername(username);
+        newUser.setEmail(email);
+        newUser.setRole(role);
+        newUser.setPassword(hashedPassword);
+        
+        
+        userRepository.save(newUser);
 
         return "User registered successfully";
     }
@@ -43,19 +50,19 @@ public class AuthService {
      */
     public String authenticateUser(String email, String password) {
         // ✅ Find user by email
-        Optional<AppUser> appUserOptional = appUserRepository.findByEmail(email);
-        if (appUserOptional.isEmpty()) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        if (userOptional.isEmpty()) {
             throw new RuntimeException("Invalid email or password.");
         }
 
-        AppUser appUser = appUserOptional.get();
+        User user = userOptional.get();
 
         // ✅ Verify password
-        if (!passwordEncoder.matches(password, appUser.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid email or password.");
         }
 
         // ✅ Generate JWT token using JwtUtil
-        return jwtUtil.generateToken(appUser.getEmail(), appUser.getRole());
+        return jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getId());
     }
 }
