@@ -86,7 +86,7 @@ public class SecurityConfig {
         // Allowed frontend origins
         config.setAllowedOrigins(List.of(
             "http://localhost:5173",
-            "https://multiuserverse-budhrani.netlify.app" // Update URL as needed
+            "https://your-netlify-site.netlify.app" // Update URL as needed
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
