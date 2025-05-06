@@ -58,10 +58,10 @@ public class UserTaskController {
         return userTaskRepository.save(newUserTask);
     }
 
+    // Retrieves all user tasks, with optional filtering by status, accessible only to ADMINs.
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     @GetMapping("/usertasks")
     public List<UserTask> getAllUserTasks(@RequestParam(required = false) Boolean status) {
-
         if (status != null) {
             return userTaskRepository.findByStatus(status, Sort.by(Sort.Direction.ASC, "id"));
         } else {
@@ -69,13 +69,7 @@ public class UserTaskController {
         }
     }
     
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/usertask/{id}")
-    public UserTask getUserTaskByIdForAdmin(@PathVariable Long id) {
-        return userTaskRepository.findById(id)
-                .orElseThrow(() -> new UserTaskNotFoundException(id));
-    }
-    
+    // Deletes a user task by ID, allowing access only to ADMINs.
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/usertask/{id}")
     public String deleteUserTask(@PathVariable Long id) {
@@ -85,10 +79,10 @@ public class UserTaskController {
         userTaskRepository.deleteById(id);
         return "UserTask with id " + id + " has been deleted successfully.";
     }
-
     
     // === PRIVILEGED_USER ONLY ===
     
+    // Retrieves tasks for a PRIVILEGED_USER, allowing access only to their own tasks.
     @PreAuthorize("hasAuthority('PRIVILEGED_USER')")
     @GetMapping("/usertasks/user/{id}")
     public List<UserTask> getTasksForPrivilegedUser(
@@ -111,6 +105,22 @@ public class UserTaskController {
 
     // === BOTH ROLES ===
     
+    // Retrieves a user task by ID, allowing access only to ADMINs or the task owner.
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'PRIVILEGED_USER')")
+    @GetMapping("/usertask/{id}")
+    public UserTask getUserTaskById(@PathVariable Long id, @AuthenticationPrincipal User currentUser) {
+        UserTask userTask = userTaskRepository.findById(id)
+                .orElseThrow(() -> new UserTaskNotFoundException(id));
+        // Allow access if ADMIN or the user is the owner of the task
+        boolean isAdmin = currentUser.getRole().equals("ADMIN");
+        boolean isOwner = userTask.getUser().getId().equals(currentUser.getId());
+        if (!isAdmin && !isOwner) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not allowed to access this task.");
+        }
+        return userTask;
+    }
+    
+    // Updates a user task, allowing changes only for ADMINs or the task owner.
     @PreAuthorize("hasAnyAuthority('ADMIN', 'PRIVILEGED_USER')")
     @PutMapping("/usertask/{id}")
     public UserTask updateUserTask(@RequestBody UserTask updatedUserTask,

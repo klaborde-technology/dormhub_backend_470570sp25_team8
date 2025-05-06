@@ -32,14 +32,13 @@ public class UserTaskRepositoryTest {
 
     @Test
     public void testFindById() {
-        // Arrange: create and save a valid User
+        // Arrange: create and save a valid User and Task
         User user = new User();
         user.setUsername("testuser");
         user.setName("Test User");
         user.setEmail("testuser@example.com");
         user = userRepository.save(user);
 
-        // Arrange: create and save a valid Task
         Task task = new Task();
         task.setName("Test Task");
         task = taskRepository.save(task);

@@ -28,7 +28,7 @@ public class UserTask {
     @JoinColumn(name = "task_id", nullable = false)
     private Task task;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")  // Add this annotation
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd") 
     private LocalDate deadline;
     
     private Boolean status;

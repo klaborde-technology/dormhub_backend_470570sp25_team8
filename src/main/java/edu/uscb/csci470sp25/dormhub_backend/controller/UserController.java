@@ -32,7 +32,6 @@ public class UserController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
     	return userRepository.findByRoleOrderByIdAsc("PRIVILEGED_USER");
-
     }
  
     // Retrieve a specific user by id

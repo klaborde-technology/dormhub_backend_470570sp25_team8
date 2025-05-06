@@ -20,11 +20,11 @@ public class User {
 	private Long id;
 	
 	@NotBlank
-	@Column(unique = true) // Ensure 'email' is unique in the database
+	@Column(unique = true) 
 	private String username;
 	
 	@NotBlank
-	@Column(unique = true) // Ensure 'email' is unique in the database
+	@Column(unique = true) 
 	private String email;
 	
 	private String name;	

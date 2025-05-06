@@ -45,7 +45,6 @@ public class UserControllerTest {
     public void setup() throws Exception {
     	this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
 
-        // Create a new user
         String newUserJson = """
         		{
         			"username": "janedoe",
@@ -63,7 +62,6 @@ public class UserControllerTest {
         		.getResponse()
         		.getContentAsString();
 
-        // Extract the ID from the response (assuming the response contains the user ID as "id")
         Integer id = JsonPath.read(userResponse, "$.id");
         testUserId = id.longValue();
 
