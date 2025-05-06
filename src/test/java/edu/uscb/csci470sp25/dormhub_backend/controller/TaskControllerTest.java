@@ -41,7 +41,6 @@ public class TaskControllerTest {
     public void setup() throws Exception {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
 
-        // Create a test task and extract its id.
         String newTaskJson = "{\"name\":\"Test Task\"}";
         String response = mockMvc.perform(post("/task")
                 .contentType(MediaType.APPLICATION_JSON)

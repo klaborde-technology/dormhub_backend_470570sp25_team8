@@ -24,7 +24,6 @@ public class AuthController {
         		authRequest.getPassword());
     }
 
-    // ✅ Login user
     @PostMapping("/login")
     public String login(@RequestBody AuthRequest authRequest) {
         return authService.authenticateUser(authRequest.getEmail(), authRequest.getPassword());
