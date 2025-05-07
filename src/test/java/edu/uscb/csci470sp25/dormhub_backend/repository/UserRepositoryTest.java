@@ -21,15 +21,16 @@ public class UserRepositoryTest {
     @Autowired
     private UserRepository userRepository;
     
-
     @Test
     public void testFindById() {
         // Arrange: create a valid user with all required fields
         User user = new User();
         user.setUsername("johndoe"); 
         user.setName("John Doe");
-        user.setEmail("janedoe@example.com");
-        
+        user.setEmail("johndoe@example.com");
+        user.setPassword("securepassword");
+        user.setRole("ADMIN");
+
         user = userRepository.save(user);
 
         // Act
@@ -38,6 +39,8 @@ public class UserRepositoryTest {
         // Assert
         assertTrue(foundUser.isPresent());
         assertEquals("John Doe", foundUser.get().getName());
+        assertEquals("securepassword", foundUser.get().getPassword());
+        assertEquals("ADMIN", foundUser.get().getRole());
     }
 
     @Test
@@ -47,12 +50,16 @@ public class UserRepositoryTest {
         user.setUsername("janedoe");
         user.setName("Jane Doe");
         user.setEmail("janedoe@example.com");
+        user.setPassword("anothersecurepassword");
+        user.setRole("ADMIN");
 
         // Act
         User savedUser = userRepository.save(user);
 
         // Assert
         assertEquals("Jane Doe", savedUser.getName());
+        assertEquals("anothersecurepassword", savedUser.getPassword());
+        assertEquals("ADMIN", savedUser.getRole());
         assertTrue(userRepository.findById(savedUser.getId()).isPresent());
     }
 
@@ -62,7 +69,10 @@ public class UserRepositoryTest {
         User user = new User();
         user.setUsername("johnsmith");
         user.setName("John Smith");
-        user.setEmail("janedoe@example.com");
+        user.setEmail("johnsmith@example.com");
+        user.setPassword("deletedpassword");
+        user.setRole("ADMIN");
+
         user = userRepository.save(user);
         Long userId = user.getId();
 
@@ -72,15 +82,17 @@ public class UserRepositoryTest {
         // Assert
         assertFalse(userRepository.findById(userId).isPresent());
     }
-    
+
     @Test
     public void testFindByEmail() {
-        // Arrange
+        // Arrange: create a valid user with all required fields
         User user = new User();
         user.setUsername("janedoe");
         user.setName("Jane Doe");
         user.setEmail("janedoe@example.com");
-        
+        user.setPassword("emailpassword");
+        user.setRole("ADMIN");
+
         userRepository.save(user);
 
         // Act
@@ -89,5 +101,7 @@ public class UserRepositoryTest {
         // Assert
         assertTrue(foundUser.isPresent());
         assertEquals("Jane Doe", foundUser.get().getName());
+        assertEquals("emailpassword", foundUser.get().getPassword());
+        assertEquals("ADMIN", foundUser.get().getRole());
     }
 }

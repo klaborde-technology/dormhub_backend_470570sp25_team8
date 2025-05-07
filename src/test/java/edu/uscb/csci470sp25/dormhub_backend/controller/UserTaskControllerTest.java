@@ -67,7 +67,6 @@ public class UserTaskControllerTest {
     public void setup() throws Exception {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
 
-        // Create admin user
         adminUser = new User();
         adminUser.setName("Admin User");
         adminUser.setUsername("admin");
@@ -76,7 +75,6 @@ public class UserTaskControllerTest {
         adminUser = userRepository.save(adminUser);
         adminUserId = adminUser.getId();
 
-        // Create PRIVILEGED_USER
         testUser = new User();
         testUser.setName("John Doe");
         testUser.setUsername("crouton");
@@ -85,13 +83,11 @@ public class UserTaskControllerTest {
         testUser = userRepository.save(testUser);
         testUserId = testUser.getId();
 
-        // Task
         Task task = new Task();
         task.setName("Test Task");
         task = taskRepository.save(task);
         testTaskId = task.getId();
 
-        // UserTask
         UserTask userTask = new UserTask();
         userTask.setUser(testUser);
         userTask.setTask(task);
